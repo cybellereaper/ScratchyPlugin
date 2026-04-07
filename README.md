@@ -1,6 +1,6 @@
 # ScratchyPlugin (Paper)
 
-ScratchyPlugin is a production-oriented Minecraft Paper plugin that provides a **Scratch-inspired visual scripting editor** entirely in-game using inventory GUIs.
+ScratchyPlugin is a Minecraft Paper plugin that provides a **Scratch-inspired visual scripting editor** entirely in-game using inventory GUIs.
 
 Players can create scripts with triggers and block-like actions/logic, save them to disk, and execute them from in-game events or commands.
 
