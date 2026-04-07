@@ -15,6 +15,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public final class BuiltinRegistries {
@@ -86,15 +87,13 @@ public final class BuiltinRegistries {
 
     private static CompletableFuture<ExecutionSignal> playSound(ActionStep step, ScriptExecutionContext context) {
         return withPlayer(context, player -> {
-            Sound sound;
-            try {
-                sound = Sound.valueOf(Args.str(step.args(), "sound", "ENTITY_EXPERIENCE_ORB_PICKUP").toUpperCase());
-            } catch (IllegalArgumentException ex) {
+            Optional<Sound> sound = resolveSound(Args.str(step.args(), "sound", "entity.experience_orb.pickup"));
+            if (sound.isEmpty()) {
                 return CompletableFuture.completedFuture(ExecutionSignal.CONTINUE);
             }
             float volume = (float) Args.decimal(step.args(), "volume", 1.0);
             float pitch = (float) Args.decimal(step.args(), "pitch", 1.0);
-            player.playSound(player.getLocation(), sound, volume, pitch);
+            player.playSound(player.getLocation(), sound.get(), volume, pitch);
             return CompletableFuture.completedFuture(ExecutionSignal.CONTINUE);
         });
     }
@@ -270,6 +269,18 @@ public final class BuiltinRegistries {
     private static CompletableFuture<ExecutionSignal> withPlayer(ScriptExecutionContext context, PlayerAction action) {
         return context.player().map(action::execute)
                 .orElseGet(() -> CompletableFuture.completedFuture(ExecutionSignal.CONTINUE));
+    }
+
+    private static Optional<Sound> resolveSound(String value) {
+        if (value == null || value.isBlank()) {
+            return Optional.empty();
+        }
+        String normalized = value.toLowerCase();
+        Sound sound = Registry.SOUNDS.get(NamespacedKey.minecraft(normalized));
+        if (sound == null && normalized.contains("_")) {
+            sound = Registry.SOUNDS.get(NamespacedKey.minecraft(normalized.replace('_', '.')));
+        }
+        return Optional.ofNullable(sound);
     }
 
     @FunctionalInterface

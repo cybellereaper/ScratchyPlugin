@@ -31,7 +31,14 @@ public final class Scratchy extends JavaPlugin {
         BuiltinRegistries.registerDefaults(actionRegistry, conditionRegistry);
 
         ScriptEngine scriptEngine = new ScriptEngine(actionRegistry, conditionRegistry);
-        ScriptRuntime runtime = new ScriptRuntime(this, projectService, scriptEngine, new BukkitSchedulerFacade(this), new ScriptValidator());
+        ScriptRuntime runtime = new ScriptRuntime(
+                getLogger(),
+                () -> getServer().getCurrentTick(),
+                projectService,
+                scriptEngine,
+                new BukkitSchedulerFacade(this),
+                new ScriptValidator()
+        );
         runtime.setDebug(getConfig().getBoolean("debug", false));
 
         GuiManager guiManager = new GuiManager(projectService);

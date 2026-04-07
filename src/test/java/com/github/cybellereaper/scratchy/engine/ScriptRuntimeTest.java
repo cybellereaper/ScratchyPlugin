@@ -7,9 +7,7 @@ import com.github.cybellereaper.scratchy.registry.ActionRegistry;
 import com.github.cybellereaper.scratchy.registry.ConditionRegistry;
 import com.github.cybellereaper.scratchy.validation.ScriptValidator;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -24,7 +22,8 @@ class ScriptRuntimeTest {
     void runByScriptNameReturnsFalseWhenMissing() {
         ProjectService service = new ProjectService(new InMemoryRepo(), java.util.logging.Logger.getLogger("test"));
         ScriptRuntime runtime = new ScriptRuntime(
-                Mockito.mock(org.bukkit.plugin.java.JavaPlugin.class),
+                java.util.logging.Logger.getLogger("test"),
+                () -> 0L,
                 service,
                 new ScriptEngine(new ActionRegistry(), new ConditionRegistry()),
                 (ticks, runnable) -> runnable.run(),
@@ -48,7 +47,8 @@ class ScriptRuntimeTest {
         ActionRegistry actions = new ActionRegistry();
         actions.register("noop", (step, ctx) -> CompletableFuture.completedFuture(ExecutionSignal.CONTINUE));
         ScriptRuntime runtime = new ScriptRuntime(
-                Mockito.mock(org.bukkit.plugin.java.JavaPlugin.class),
+                java.util.logging.Logger.getLogger("test"),
+                () -> 0L,
                 service,
                 new ScriptEngine(actions, new ConditionRegistry()),
                 (ticks, runnable) -> runnable.run(),
