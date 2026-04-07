@@ -19,6 +19,7 @@ public class ProjectService {
     }
 
     public void loadAll() {
+        cache.clear();
         try {
             for (ProjectDefinition project : repository.findAll()) {
                 cache.put(project.id(), project);
@@ -32,8 +33,23 @@ public class ProjectService {
         return cache.values();
     }
 
+    public List<ScriptDefinition> listScripts() {
+        return cache.values().stream()
+                .flatMap(project -> project.scripts().stream())
+                .toList();
+    }
+
     public Optional<ProjectDefinition> findProject(UUID id) {
         return Optional.ofNullable(cache.get(id));
+    }
+
+    public Optional<ScriptDefinition> findScriptByName(String name) {
+        if (name == null || name.isBlank()) {
+            return Optional.empty();
+        }
+        return listScripts().stream()
+                .filter(script -> script.name().equalsIgnoreCase(name))
+                .findFirst();
     }
 
     public ProjectDefinition createProject(String name) {
@@ -41,6 +57,20 @@ public class ProjectService {
         cache.put(project.id(), project);
         persist(project);
         return project;
+    }
+
+    public boolean deleteScript(UUID scriptId) {
+        for (ProjectDefinition project : cache.values()) {
+            List<ScriptDefinition> scripts = new ArrayList<>(project.scripts());
+            boolean removed = scripts.removeIf(existing -> existing.id().equals(scriptId));
+            if (removed) {
+                ProjectDefinition updated = new ProjectDefinition(project.id(), project.name(), scripts);
+                cache.put(updated.id(), updated);
+                persist(updated);
+                return true;
+            }
+        }
+        return false;
     }
 
     public void upsertScript(UUID projectId, ScriptDefinition script) {

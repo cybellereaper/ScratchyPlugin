@@ -8,13 +8,33 @@ load: POSTWORLD
 commands:
   scratchy:
     description: Open and manage Scratchy visual scripts
-    usage: /scratchy <open|list|debug|trigger>
-    permission: scratchy.use
+    usage: /scratchy <open|list|run|reload|debug>
+    permission: scratchplugin.use
+  scratchplugin:
+    description: Open and manage Scratchy visual scripts
+    usage: /scratchplugin <open|list|run|reload|debug>
+    permission: scratchplugin.use
 
 permissions:
+  scratchplugin.use:
+    description: Use ScratchPlugin base command
+    default: true
+  scratchplugin.edit:
+    description: Open GUI and edit scripts
+    default: op
+  scratchplugin.run:
+    description: Run scripts manually
+    default: true
+  scratchplugin.admin:
+    description: Reload script data and admin controls
+    default: op
+  scratchplugin.debug:
+    description: Toggle debug execution logging
+    default: op
+
   scratchy.use:
-    description: Use Scratchy base command
+    description: Legacy alias permission
     default: true
   scratchy.admin:
-    description: Access debug and admin controls
+    description: Legacy alias admin permission
     default: op

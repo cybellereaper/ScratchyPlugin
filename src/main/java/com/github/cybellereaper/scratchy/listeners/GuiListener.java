@@ -102,6 +102,8 @@ public class GuiListener implements Listener {
             case 20 -> session.addAction("wait");
             case 21 -> session.addAction("run_command");
             case 22 -> session.addAction("set_variable");
+            case 23 -> session.addAction("increment_variable");
+            case 24 -> session.addAction("stop_script");
             case 31 -> {
                 guiManager.openEditor(player, session.projectId());
                 return;

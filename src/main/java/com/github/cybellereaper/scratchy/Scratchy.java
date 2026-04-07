@@ -13,6 +13,7 @@ import com.github.cybellereaper.scratchy.persistence.ProjectService;
 import com.github.cybellereaper.scratchy.registry.ActionRegistry;
 import com.github.cybellereaper.scratchy.registry.BuiltinRegistries;
 import com.github.cybellereaper.scratchy.registry.ConditionRegistry;
+import com.github.cybellereaper.scratchy.validation.ScriptValidator;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -30,7 +31,14 @@ public final class Scratchy extends JavaPlugin {
         BuiltinRegistries.registerDefaults(actionRegistry, conditionRegistry);
 
         ScriptEngine scriptEngine = new ScriptEngine(actionRegistry, conditionRegistry);
-        ScriptRuntime runtime = new ScriptRuntime(this, projectService, scriptEngine, new BukkitSchedulerFacade(this));
+        ScriptRuntime runtime = new ScriptRuntime(
+                getLogger(),
+                () -> getServer().getCurrentTick(),
+                projectService,
+                scriptEngine,
+                new BukkitSchedulerFacade(this),
+                new ScriptValidator()
+        );
         runtime.setDebug(getConfig().getBoolean("debug", false));
 
         GuiManager guiManager = new GuiManager(projectService);
@@ -39,14 +47,19 @@ public final class Scratchy extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new TriggerListeners(runtime), this);
 
         ScratchyCommand command = new ScratchyCommand(guiManager, projectService, runtime);
-        PluginCommand scratchyCommand = getCommand("scratchy");
-        if (scratchyCommand != null) {
-            scratchyCommand.setExecutor(command);
-            scratchyCommand.setTabCompleter(command);
-        }
+        registerCommand("scratchy", command);
+        registerCommand("scratchplugin", command);
 
         long scheduledInterval = Math.max(20L, getConfig().getLong("scheduled-trigger-ticks", 200L));
         getServer().getScheduler().runTaskTimer(this, runtime::runScheduledScripts, scheduledInterval, scheduledInterval);
         getLogger().info("Scratchy enabled with " + projectService.listProjects().size() + " loaded project(s).");
+    }
+
+    private void registerCommand(String name, ScratchyCommand command) {
+        PluginCommand pluginCommand = getCommand(name);
+        if (pluginCommand != null) {
+            pluginCommand.setExecutor(command);
+            pluginCommand.setTabCompleter(command);
+        }
     }
 }
