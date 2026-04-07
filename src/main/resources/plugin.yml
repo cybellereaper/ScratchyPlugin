@@ -4,3 +4,17 @@ version: '$version'
 main: com.github.cybellereaper.scratchy.Scratchy
 api-version: '1.21.11'
 load: POSTWORLD
+
+commands:
+  scratchy:
+    description: Open and manage Scratchy visual scripts
+    usage: /scratchy <open|list|debug|trigger>
+    permission: scratchy.use
+
+permissions:
+  scratchy.use:
+    description: Use Scratchy base command
+    default: true
+  scratchy.admin:
+    description: Access debug and admin controls
+    default: op

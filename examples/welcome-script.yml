@@ -1,0 +1,27 @@
+id: "7ae6ac35-00f3-4470-a239-fc6163d2169a"
+name: "Welcome Pack"
+scripts:
+  - id: "7cbf6ca9-e79e-47f9-b80f-a3f0f4efa8b4"
+    name: "JoinWelcome"
+    trigger:
+      type: "JOIN"
+      value: ""
+      intervalTicks: 0
+    root:
+      kind: "sequence"
+      steps:
+        - kind: "action"
+          actionType: "send_message"
+          args:
+            message: "&aWelcome to the server!"
+        - kind: "action"
+          actionType: "give_item"
+          args:
+            material: "BREAD"
+            amount: 5
+        - kind: "action"
+          actionType: "play_sound"
+          args:
+            sound: "ENTITY_PLAYER_LEVELUP"
+            volume: 1.0
+            pitch: 1.0
