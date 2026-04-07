@@ -1,0 +1,6 @@
+name: Scratchy
+version: '$version'
+
+main: com.github.cybellereaper.scratchy.Scratchy
+api-version: '1.21.11'
+load: POSTWORLD
