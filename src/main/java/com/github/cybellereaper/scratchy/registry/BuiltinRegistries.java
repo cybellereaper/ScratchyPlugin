@@ -38,6 +38,8 @@ public final class BuiltinRegistries {
         actions.register("wait", BuiltinRegistries::waitAction);
         actions.register("run_command", BuiltinRegistries::runCommand);
         actions.register("set_variable", BuiltinRegistries::setVariable);
+        actions.register("increment_variable", BuiltinRegistries::incrementVariable);
+        actions.register("stop_script", BuiltinRegistries::stopScript);
     }
 
     private static void registerConditions(ConditionRegistry conditions) {
@@ -46,6 +48,8 @@ public final class BuiltinRegistries {
         conditions.register("random_chance", BuiltinRegistries::randomChance);
         conditions.register("block_match", BuiltinRegistries::blockMatch);
         conditions.register("health_threshold", BuiltinRegistries::healthThreshold);
+        conditions.register("variable_equals", BuiltinRegistries::variableEquals);
+        conditions.register("variable_compare", BuiltinRegistries::variableCompare);
     }
 
     private static CompletableFuture<ExecutionSignal> giveItem(ActionStep step, ScriptExecutionContext context) {
@@ -173,6 +177,19 @@ public final class BuiltinRegistries {
         return CompletableFuture.completedFuture(ExecutionSignal.CONTINUE);
     }
 
+    private static CompletableFuture<ExecutionSignal> incrementVariable(ActionStep step, ScriptExecutionContext context) {
+        String key = Args.str(step.args(), "key", "counter");
+        int by = Args.integer(step.args(), "by", 1);
+        Object value = context.variables().getOrDefault(key, 0);
+        int current = value instanceof Number number ? number.intValue() : 0;
+        context.variables().put(key, current + by);
+        return CompletableFuture.completedFuture(ExecutionSignal.CONTINUE);
+    }
+
+    private static CompletableFuture<ExecutionSignal> stopScript(ActionStep step, ScriptExecutionContext context) {
+        return CompletableFuture.completedFuture(ExecutionSignal.STOP);
+    }
+
     private static boolean hasItem(ConditionSpec condition, ScriptExecutionContext context) {
         return context.player().map(player -> {
             Material material = Material.matchMaterial(Args.str(condition.args(), "material", "STONE"));
@@ -226,6 +243,28 @@ public final class BuiltinRegistries {
                 default -> health <= threshold;
             };
         }).orElse(false);
+    }
+
+    private static boolean variableEquals(ConditionSpec condition, ScriptExecutionContext context) {
+        String key = Args.str(condition.args(), "key", "default");
+        String expected = Args.str(condition.args(), "value", "");
+        Object actual = context.variables().get(key);
+        return String.valueOf(actual).equalsIgnoreCase(expected);
+    }
+
+    private static boolean variableCompare(ConditionSpec condition, ScriptExecutionContext context) {
+        String key = Args.str(condition.args(), "key", "counter");
+        int expected = Args.integer(condition.args(), "value", 0);
+        String op = Args.str(condition.args(), "operator", ">=");
+        Object rawActual = context.variables().getOrDefault(key, 0);
+        int actual = rawActual instanceof Number number ? number.intValue() : 0;
+        return switch (op) {
+            case "<" -> actual < expected;
+            case "<=" -> actual <= expected;
+            case ">" -> actual > expected;
+            case "==" -> actual == expected;
+            default -> actual >= expected;
+        };
     }
 
     private static CompletableFuture<ExecutionSignal> withPlayer(ScriptExecutionContext context, PlayerAction action) {

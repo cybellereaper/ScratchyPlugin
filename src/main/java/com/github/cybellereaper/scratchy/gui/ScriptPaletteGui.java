@@ -30,6 +30,8 @@ public class ScriptPaletteGui {
         inventory.setItem(20, item(Material.CLOCK, "Action: Wait"));
         inventory.setItem(21, item(Material.COMMAND_BLOCK, "Action: Run Command"));
         inventory.setItem(22, item(Material.NAME_TAG, "Action: Set Variable"));
+        inventory.setItem(23, item(Material.ANVIL, "Action: Increment Variable"));
+        inventory.setItem(24, item(Material.BARRIER, "Action: Stop Script"));
         inventory.setItem(31, item(Material.ARROW, "Back"));
         return inventory;
     }

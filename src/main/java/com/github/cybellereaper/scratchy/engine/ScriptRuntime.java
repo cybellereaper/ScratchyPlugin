@@ -5,12 +5,13 @@ import com.github.cybellereaper.scratchy.domain.ProjectDefinition;
 import com.github.cybellereaper.scratchy.domain.ScriptDefinition;
 import com.github.cybellereaper.scratchy.domain.TriggerType;
 import com.github.cybellereaper.scratchy.persistence.ProjectService;
+import com.github.cybellereaper.scratchy.validation.ScriptValidator;
+import com.github.cybellereaper.scratchy.validation.ValidationResult;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public class ScriptRuntime {
@@ -18,13 +19,20 @@ public class ScriptRuntime {
     private final ProjectService projectService;
     private final ScriptEngine engine;
     private final SchedulerFacade scheduler;
+    private final ScriptValidator scriptValidator;
+    private final Map<UUID, Long> lastScheduledRunTick = new ConcurrentHashMap<>();
     private boolean debug;
 
-    public ScriptRuntime(JavaPlugin plugin, ProjectService projectService, ScriptEngine engine, SchedulerFacade scheduler) {
+    public ScriptRuntime(JavaPlugin plugin,
+                         ProjectService projectService,
+                         ScriptEngine engine,
+                         SchedulerFacade scheduler,
+                         ScriptValidator scriptValidator) {
         this.plugin = plugin;
         this.projectService = projectService;
         this.engine = engine;
         this.scheduler = scheduler;
+        this.scriptValidator = scriptValidator;
     }
 
     public void setDebug(boolean debug) {
@@ -40,9 +48,26 @@ public class ScriptRuntime {
                 .forEach(script -> execute(script, player));
     }
 
+    public boolean runByScriptName(String scriptName, Player player) {
+        return projectService.findScriptByName(scriptName)
+                .map(script -> {
+                    execute(script, player);
+                    return true;
+                })
+                .orElse(false);
+    }
+
     public void runScheduledScripts() {
+        long nowTick = plugin.getServer().getCurrentTick();
         matchingScripts(TriggerType.SCHEDULED, "")
-                .forEach(script -> execute(script, null));
+                .forEach(script -> {
+                    long interval = Math.max(20L, script.trigger().intervalTicks());
+                    long lastRun = lastScheduledRunTick.getOrDefault(script.id(), 0L);
+                    if (nowTick - lastRun >= interval) {
+                        execute(script, null);
+                        lastScheduledRunTick.put(script.id(), nowTick);
+                    }
+                });
     }
 
     public List<ScriptDefinition> matchingScripts(TriggerType triggerType, String value) {
@@ -60,6 +85,11 @@ public class ScriptRuntime {
     }
 
     private void execute(ScriptDefinition script, Player player) {
+        ValidationResult validationResult = scriptValidator.validate(script);
+        if (!validationResult.valid()) {
+            plugin.getLogger().warning("Skipping invalid script '" + script.name() + "': " + String.join("; ", validationResult.errors()));
+            return;
+        }
         if (debug) {
             plugin.getLogger().info("Executing script: " + script.name() + " [" + script.id() + "]");
         }
