@@ -85,9 +85,9 @@ Persistence is isolated behind `ProjectRepository` and `ProjectService`, with do
 - **Domain (`domain`)**: immutable script graph nodes (`SequenceStep`, `ActionStep`, `IfStep`, loops, etc.).
 - **Engine (`engine`)**: step execution, async wait scheduling, and trigger runtime.
 - **Registries (`registry`)**: action/condition handler registration for extension without giant switch blocks.
-- **Persistence (`persistence`)**: repository abstraction and project catalog service.
-- **GUI (`gui` + listeners)**: inventory-driven editor and palette with player session state.
-- **Validation (`validation`)**: script integrity checks before execution.
+- **Persistence (`persistence` + `migrations`)**: versioned repository abstraction with schema migration support.
+- **GUI (`gui` + listeners)**: inventory-driven editor and palette with player session state and root-sequence drag/drop reordering.
+- **Validation (`validation` + `script.variables`)**: runtime script integrity checks plus editor-time variable/event scope checks.
 
 ## Debugging
 Use `/scratchplugin debug` to enable execution logging.
@@ -107,11 +107,10 @@ See `examples/welcome-script.yml`.
 - Nested visual tree editing is represented as templates/examples in editor interactions.
 - No collaborative multi-user editing lock/merge strategy yet.
 
-## Future Improvements
-- drag-and-drop block arrangement
-- richer nested visual blocks and branch editing
-- multiplayer collaborative editing sessions
-- script templates and marketplace-like import/export
-- richer variable types + scoped variable lifetimes
-- event parameter references (e.g., interacted block/entity as first-class values)
-- stronger persistence migration/versioning
+## Next-Gen Foundations (Implemented)
+- Root-sequence drag-and-drop block reordering in the editor GUI (pick block, drop on target index).
+- Nested branch-aware block document model (`ScriptDocument` / `ScriptBlock` / `ScriptSequence`).
+- Collaboration/session foundation with deterministic revision-based operation application.
+- Versioned project persistence (`schemaVersion`) with legacy migration support.
+- Versioned template import/export codec with metadata and strict validation.
+- Richer variable declaration model (type + scope) and first-class event parameter references.
