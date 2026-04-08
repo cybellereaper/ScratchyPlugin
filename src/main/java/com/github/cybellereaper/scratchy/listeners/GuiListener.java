@@ -1,6 +1,7 @@
 package com.github.cybellereaper.scratchy.listeners;
 
 import com.github.cybellereaper.scratchy.domain.ProjectDefinition;
+import com.github.cybellereaper.scratchy.script.blocks.ScriptBlock;
 import com.github.cybellereaper.scratchy.gui.*;
 import com.github.cybellereaper.scratchy.persistence.ProjectService;
 import org.bukkit.entity.Player;
@@ -81,8 +82,24 @@ public class GuiListener implements Listener {
                 guiManager.clearSession(player.getUniqueId());
             }
             default -> {
+                if (event.getSlot() >= 27 && event.getSlot() <= 44) {
+                    handleDragAndDrop(session, event.getSlot() - 27);
+                    guiManager.openEditor(player, session.projectId());
+                }
             }
         }
+    }
+
+    private void handleDragAndDrop(EditorSession session, int visualIndex) {
+        if (visualIndex < 0 || visualIndex >= session.blocks().size()) {
+            return;
+        }
+        ScriptBlock selected = session.blocks().get(visualIndex);
+        if (session.draggingBlockId() == null) {
+            session.startDragging(selected.id());
+            return;
+        }
+        session.dropAt(visualIndex);
     }
 
     private void handlePalette(InventoryClickEvent event, Player player) {
